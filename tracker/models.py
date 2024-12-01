@@ -1,6 +1,7 @@
 import requests
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.db import models
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
@@ -24,10 +25,20 @@ class CustomUserManager(BaseUserManager):
     def create_user(self, email: str = None, password: str = None, role: str = None) -> "CustomUser":
         """
         Creates a new user
-        :param email: str = None
-        :param password: str = None
+        :param email: str
+        :param password: str
+        :param role: str = None
         :return: CustomUser
         """
+        if email: 
+            try:
+                validate_email(email)
+            except ValidationError:
+                raise ValueError("Invalid email format")
+
+        if not role:
+            role = Roles.CONTRIBUTOR
+       
         user = self.model(
             email=self.normalize_email(email),
             password=password,
@@ -44,8 +55,8 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, email: str = None, password: str = None, role: str = None) -> "CustomUser":
         """
         Creates a new superuser
-        :param email: str = None
-        :param password: str = None
+        :param email: str
+        :param password: str
         :param role: str = None
         :return: CustomUser
         """

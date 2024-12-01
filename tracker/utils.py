@@ -15,17 +15,21 @@ logger.setLevel(logging.INFO)
 @sync_to_async
 def get_all_repostitories(tele_id: str) -> list[dict]:
     """
-    A function that returns a list of repositories asyncronously.
+    A function that returns a list of repositories asynchronously.
+    Handles cases where the TelegramUser does not exist.
+
     :param tele_id: str
-    :return: Repositories
+    :return: List of repositories
     """
     from .models import TelegramUser
 
-    repositories = TelegramUser.objects.get(
-        telegram_id=tele_id
-    ).user.repository_set.values()
-
-    return list(repositories)
+    try:
+        repositories = TelegramUser.objects.get(
+            telegram_id=tele_id
+        ).user.repository_set.values()
+        return list(repositories)
+    except TelegramUser.DoesNotExist:
+        return []
 
 
 @sync_to_async
